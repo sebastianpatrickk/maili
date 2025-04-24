@@ -19,12 +19,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useForm } from "@tanstack/react-form";
-import { createEmailSchema } from "../schemas";
+import { emailInsertFormSchema } from "../schemas";
 
 const inboxes = [
-  { value: "mydva@dotekypohybu.cz", lable: "mydva@dotekypohybu.cz" },
-  { value: "martin@dotekypohybu.cz", lable: "martin@dotekypohybu.cz" },
-  { value: "svatuska@dotekypohybu.cz", lable: "svatuska@dotekypohybu.cz" },
+  { value: 1, lable: "mydva@dotekypohybu.cz" },
+  { value: 2, lable: "martin@dotekypohybu.cz" },
+  { value: 3, lable: "svatuska@dotekypohybu.cz" },
 ];
 
 export function ChatInput() {
@@ -32,11 +32,11 @@ export function ChatInput() {
     defaultValues: {
       email: "",
       message: "",
-      inbox: "",
+      inboxId: "1",
     },
     validators: {
-      onChange: createEmailSchema,
-      onMount: createEmailSchema,
+      onChange: emailInsertFormSchema,
+      onMount: emailInsertFormSchema,
     },
     onSubmit: async ({ value }) => {
       console.log(value);
@@ -128,10 +128,10 @@ export function ChatInput() {
         </div>
         <div className="flex items-center -ml-2 -mb-2">
           <form.Field
-            name="inbox"
+            name="inboxId"
             children={(field) => (
               <Select
-                onValueChange={(value) => field.handleChange(value)}
+                onValueChange={field.handleChange}
                 defaultValue={field.state.value}
               >
                 <SelectTrigger className="border-none shadow-none !bg-transparent">
@@ -139,7 +139,7 @@ export function ChatInput() {
                 </SelectTrigger>
                 <SelectContent>
                   {inboxes.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
+                    <SelectItem key={item.value} value={String(item.value)}>
                       {item.lable}
                     </SelectItem>
                   ))}
