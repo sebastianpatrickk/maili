@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useForm } from "@tanstack/react-form";
-import { emailInsertFormSchema } from "../schemas";
+import { emailInsertFormSchema } from "@/lib/validations/email";
 
 const inboxes = [
   { value: 1, lable: "mydva@dotekypohybu.cz" },

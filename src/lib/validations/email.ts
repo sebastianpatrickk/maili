@@ -1,5 +1,5 @@
-import { emailInsertSchema } from "@/lib/schema";
 import { z } from "zod";
+import { emailInsertSchema } from "@/server/db/schema";
 
 export const emailInsertFormSchema = emailInsertSchema
   .pick({
