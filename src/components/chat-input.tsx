@@ -20,19 +20,21 @@ import {
 } from "@/components/ui/tooltip";
 import { useForm } from "@tanstack/react-form";
 import { emailInsertFormSchema } from "@/lib/validations/email";
-
-const inboxes = [
-  { value: 1, lable: "mydva@dotekypohybu.cz" },
-  { value: 2, lable: "martin@dotekypohybu.cz" },
-  { value: 3, lable: "svatuska@dotekypohybu.cz" },
-];
+import { useGetInboxSelectOptions } from "@/lib/queries/inbox";
 
 export function ChatInput() {
+  const { data: inboxes } = useGetInboxSelectOptions();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const form = useForm({
     defaultValues: {
       email: "",
       message: "",
-      inboxId: "1",
+      inboxId: "",
     },
     validators: {
       onChange: emailInsertFormSchema,
@@ -53,9 +55,8 @@ export function ChatInput() {
     >
       <div className="relative rounded-lg border p-3">
         <div className="flex flex-grow flex-row items-start">
-          <form.Field
-            name="message"
-            children={(field) => (
+          <form.Field name="message">
+            {(field) => (
               <Textarea
                 value={field.state.value}
                 onBlur={field.handleBlur}
@@ -65,7 +66,7 @@ export function ChatInput() {
                 className="max-h-60 rounded-none"
               />
             )}
-          />
+          </form.Field>
 
           <form.Subscribe
             selector={(state) => [
@@ -73,13 +74,15 @@ export function ChatInput() {
               state.isSubmitting,
               state.errors,
             ]}
-            children={([canSubmit, isSubmitting, errors]) => {
+          >
+            {([canSubmit, isSubmitting, errors]) => {
               const errorMessages =
                 Array.isArray(errors) && errors.length > 0 && errors[0]
                   ? Object.entries(
                       errors[0] as Record<string, Array<{ message: string }>>
                     )
-                      .map(([field, fieldErrors]) => fieldErrors[0].message)
+
+                      .map(([, fieldErrors]) => fieldErrors[0].message)
                       .filter(Boolean)
                   : [];
 
@@ -92,7 +95,7 @@ export function ChatInput() {
                           type="submit"
                           size="icon"
                           className="rounded-md"
-                          disabled={!canSubmit}
+                          disabled={!canSubmit || !isMounted}
                         >
                           {!isSubmitting ? (
                             <>
@@ -108,15 +111,17 @@ export function ChatInput() {
                     <TooltipContent>
                       {errorMessages.length > 0 ? (
                         <ul className="list-disc list-inside">
-                          {errorMessages.map(
-                            (message: string, index: number) => (
-                              <li key={index}>{message}</li>
-                            )
-                          )}
+                          {errorMessages.map((message, index) => (
+                            <li key={index}>{message}</li>
+                          ))}
                         </ul>
                       ) : (
                         <p>
-                          {isSubmitting ? "Submitting form" : "Submit form"}
+                          {!isMounted
+                            ? "Form is initializing..."
+                            : isSubmitting
+                            ? "Submitting form"
+                            : "Submit form"}
                         </p>
                       )}
                     </TooltipContent>
@@ -124,33 +129,31 @@ export function ChatInput() {
                 </TooltipProvider>
               );
             }}
-          />
+          </form.Subscribe>
         </div>
         <div className="flex items-center -ml-2 -mb-2">
-          <form.Field
-            name="inboxId"
-            children={(field) => (
+          <form.Field name="inboxId">
+            {(field) => (
               <Select
                 onValueChange={field.handleChange}
-                defaultValue={field.state.value}
+                value={field.state.value}
               >
                 <SelectTrigger className="border-none shadow-none !bg-transparent">
                   <SelectValue placeholder="Select a inbox" />
                 </SelectTrigger>
                 <SelectContent>
-                  {inboxes.map((item) => (
+                  {inboxes?.map((item) => (
                     <SelectItem key={item.value} value={String(item.value)}>
-                      {item.lable}
+                      {item.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
-          />
+          </form.Field>
 
-          <form.Field
-            name="email"
-            children={(field) => (
+          <form.Field name="email">
+            {(field) => (
               <Input
                 type="email"
                 value={field.state.value}
@@ -160,7 +163,7 @@ export function ChatInput() {
                 placeholder="Customer email here..."
               />
             )}
-          />
+          </form.Field>
         </div>
       </div>
     </form>
