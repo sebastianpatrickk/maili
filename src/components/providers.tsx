@@ -6,7 +6,8 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { HTTPException } from "hono/http-exception";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useState, useEffect } from "react";
+import { prefetchInboxes } from "@/lib/queries/inbox";
 
 export const Providers = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(
@@ -20,6 +21,10 @@ export const Providers = ({ children }: PropsWithChildren) => {
         }),
       })
   );
+
+  useEffect(() => {
+    prefetchInboxes(queryClient);
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
