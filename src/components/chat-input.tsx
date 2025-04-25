@@ -19,27 +19,45 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useForm } from "@tanstack/react-form";
-import { createEmailSchema } from "../schemas";
-
-const inboxes = [
-  { value: "mydva@dotekypohybu.cz", lable: "mydva@dotekypohybu.cz" },
-  { value: "martin@dotekypohybu.cz", lable: "martin@dotekypohybu.cz" },
-  { value: "svatuska@dotekypohybu.cz", lable: "svatuska@dotekypohybu.cz" },
-];
+import { emailInsertFormSchema } from "@/lib/validations/email";
+import { useGetInboxSelectOptions } from "@/lib/queries/inbox";
+import { useCreateEmail } from "@/lib/queries/email";
 
 export function ChatInput() {
+  const { mutateAsync } = useCreateEmail();
+  const {
+    data: inboxes = [],
+    isLoading: isInboxesLoading,
+    isError: isInboxesError,
+  } = useGetInboxSelectOptions();
+
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const form = useForm({
     defaultValues: {
       email: "",
       message: "",
-      inbox: "",
+      inboxId: "",
     },
     validators: {
-      onChange: createEmailSchema,
-      onMount: createEmailSchema,
+      onChange: emailInsertFormSchema,
+      onMount: emailInsertFormSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
+      await mutateAsync(
+        {
+          json: value,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+          },
+        }
+      );
     },
   });
 
@@ -53,9 +71,8 @@ export function ChatInput() {
     >
       <div className="relative rounded-lg border p-3">
         <div className="flex flex-grow flex-row items-start">
-          <form.Field
-            name="message"
-            children={(field) => (
+          <form.Field name="message">
+            {(field) => (
               <Textarea
                 value={field.state.value}
                 onBlur={field.handleBlur}
@@ -65,7 +82,7 @@ export function ChatInput() {
                 className="max-h-60 rounded-none"
               />
             )}
-          />
+          </form.Field>
 
           <form.Subscribe
             selector={(state) => [
@@ -73,13 +90,15 @@ export function ChatInput() {
               state.isSubmitting,
               state.errors,
             ]}
-            children={([canSubmit, isSubmitting, errors]) => {
+          >
+            {([canSubmit, isSubmitting, errors]) => {
               const errorMessages =
                 Array.isArray(errors) && errors.length > 0 && errors[0]
                   ? Object.entries(
                       errors[0] as Record<string, Array<{ message: string }>>
                     )
-                      .map(([field, fieldErrors]) => fieldErrors[0].message)
+
+                      .map(([, fieldErrors]) => fieldErrors[0].message)
                       .filter(Boolean)
                   : [];
 
@@ -92,7 +111,7 @@ export function ChatInput() {
                           type="submit"
                           size="icon"
                           className="rounded-md"
-                          disabled={!canSubmit}
+                          disabled={!canSubmit || !isMounted}
                         >
                           {!isSubmitting ? (
                             <>
@@ -108,15 +127,17 @@ export function ChatInput() {
                     <TooltipContent>
                       {errorMessages.length > 0 ? (
                         <ul className="list-disc list-inside">
-                          {errorMessages.map(
-                            (message: string, index: number) => (
-                              <li key={index}>{message}</li>
-                            )
-                          )}
+                          {errorMessages.map((message, index) => (
+                            <li key={index}>{message}</li>
+                          ))}
                         </ul>
                       ) : (
                         <p>
-                          {isSubmitting ? "Submitting form" : "Submit form"}
+                          {!isMounted
+                            ? "Form is initializing..."
+                            : isSubmitting
+                            ? "Submitting form"
+                            : "Submit form"}
                         </p>
                       )}
                     </TooltipContent>
@@ -124,33 +145,45 @@ export function ChatInput() {
                 </TooltipProvider>
               );
             }}
-          />
+          </form.Subscribe>
         </div>
         <div className="flex items-center -ml-2 -mb-2">
-          <form.Field
-            name="inbox"
-            children={(field) => (
+          <form.Field name="inboxId">
+            {(field) => (
               <Select
-                onValueChange={(value) => field.handleChange(value)}
-                defaultValue={field.state.value}
+                onValueChange={field.handleChange}
+                value={field.state.value}
               >
                 <SelectTrigger className="border-none shadow-none !bg-transparent">
                   <SelectValue placeholder="Select a inbox" />
                 </SelectTrigger>
                 <SelectContent>
-                  {inboxes.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.lable}
+                  {isInboxesLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading inboxes...
                     </SelectItem>
-                  ))}
+                  ) : isInboxesError ? (
+                    <SelectItem value="error" disabled>
+                      Failed to load inboxes
+                    </SelectItem>
+                  ) : inboxes.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No inboxes available
+                    </SelectItem>
+                  ) : (
+                    inboxes.map((item) => (
+                      <SelectItem key={item.value} value={String(item.value)}>
+                        {item.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             )}
-          />
+          </form.Field>
 
-          <form.Field
-            name="email"
-            children={(field) => (
+          <form.Field name="email">
+            {(field) => (
               <Input
                 type="email"
                 value={field.state.value}
@@ -160,7 +193,7 @@ export function ChatInput() {
                 placeholder="Customer email here..."
               />
             )}
-          />
+          </form.Field>
         </div>
       </div>
     </form>

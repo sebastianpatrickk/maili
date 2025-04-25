@@ -1,4 +1,4 @@
-import { ChatInput } from "@/features/emails/components/chat-input";
+import { ChatInput } from "@/components/chat-input";
 
 export default function ChatPage() {
   return (
