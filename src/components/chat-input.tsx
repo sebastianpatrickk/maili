@@ -23,7 +23,11 @@ import { emailInsertFormSchema } from "@/lib/validations/email";
 import { useGetInboxSelectOptions } from "@/lib/queries/inbox";
 
 export function ChatInput() {
-  const { data: inboxes } = useGetInboxSelectOptions();
+  const {
+    data: inboxes = [],
+    isLoading: isInboxesLoading,
+    isError: isInboxesError,
+  } = useGetInboxSelectOptions();
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -142,11 +146,25 @@ export function ChatInput() {
                   <SelectValue placeholder="Select a inbox" />
                 </SelectTrigger>
                 <SelectContent>
-                  {inboxes?.map((item) => (
-                    <SelectItem key={item.value} value={String(item.value)}>
-                      {item.label}
+                  {isInboxesLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading inboxes...
                     </SelectItem>
-                  ))}
+                  ) : isInboxesError ? (
+                    <SelectItem value="error" disabled>
+                      Failed to load inboxes
+                    </SelectItem>
+                  ) : inboxes.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No inboxes available
+                    </SelectItem>
+                  ) : (
+                    inboxes.map((item) => (
+                      <SelectItem key={item.value} value={String(item.value)}>
+                        {item.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             )}
