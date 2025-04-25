@@ -47,7 +47,7 @@ export const useCreateEmail = () => {
       toast.success("Email created");
       queryClient.invalidateQueries({ queryKey: emailKeys.all });
     },
-    onError: (err) => {
+    onError: () => {
       toast.error("Failed to create email");
     },
   });
