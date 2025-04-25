@@ -21,13 +21,16 @@ import {
 import { useForm } from "@tanstack/react-form";
 import { emailInsertFormSchema } from "@/lib/validations/email";
 import { useGetInboxSelectOptions } from "@/lib/queries/inbox";
+import { useCreateEmail } from "@/lib/queries/email";
 
 export function ChatInput() {
+  const { mutateAsync } = useCreateEmail();
   const {
     data: inboxes = [],
     isLoading: isInboxesLoading,
     isError: isInboxesError,
   } = useGetInboxSelectOptions();
+
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -45,7 +48,16 @@ export function ChatInput() {
       onMount: emailInsertFormSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
+      await mutateAsync(
+        {
+          json: value,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+          },
+        }
+      );
     },
   });
 
