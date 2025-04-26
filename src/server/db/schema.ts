@@ -8,11 +8,15 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { nanoid } from "nanoid";
 
 export const emails = pgTable(
   "emails",
   {
     id: serial("id").primaryKey(),
+    publicId: text("publicId")
+      .notNull()
+      .$defaultFn(() => nanoid()),
     title: text("title").notNull(),
     email: text("email").notNull(),
     message: text("message").notNull(),
@@ -23,7 +27,10 @@ export const emails = pgTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
-  (table) => [index("Email_name_idx").on(table.title)]
+  (table) => [
+    index("Email_name_idx").on(table.title),
+    index("Email_publicId_idx").on(table.publicId),
+  ]
 );
 
 export const emailsRelations = relations(emails, ({ one }) => ({

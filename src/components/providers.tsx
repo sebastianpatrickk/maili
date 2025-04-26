@@ -10,23 +10,10 @@ import { HTTPException } from "hono/http-exception";
 import { PropsWithChildren, useState, useEffect } from "react";
 import { prefetchInboxes } from "@/lib/queries/inbox";
 import { Toaster } from "@/components/ui/sonner";
+import { getQueryClient } from "@/lib/get-query-client";
 
 export const Providers = ({ children }: PropsWithChildren) => {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        queryCache: new QueryCache({
-          onError: (err) => {
-            if (err instanceof HTTPException) {
-            }
-          },
-        }),
-      })
-  );
-
-  useEffect(() => {
-    prefetchInboxes(queryClient);
-  }, [queryClient]);
+  const queryClient = getQueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -22,8 +22,10 @@ import { useForm } from "@tanstack/react-form";
 import { emailInsertFormSchema } from "@/lib/validations/email";
 import { useGetInboxSelectOptions } from "@/lib/queries/inbox";
 import { useCreateEmail } from "@/lib/queries/email";
+import { useRouter } from "next/navigation";
 
 export function ChatInput() {
+  const router = useRouter();
   const { mutateAsync } = useCreateEmail();
   const {
     data: inboxes = [],
@@ -53,8 +55,9 @@ export function ChatInput() {
           json: value,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             form.reset();
+            router.push(`/email/${data.data.publicId}`);
           },
         }
       );

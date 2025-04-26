@@ -2,9 +2,11 @@ import { InferRequestType, InferResponseType } from "hono";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
 import { toast } from "sonner";
+import { getEmailById } from "@/lib/actions/email";
 
 export const emailKeys = {
   all: ["emails"] as const,
+  byId: (id: string) => [...emailKeys.all, id] as const,
 };
 
 export const useGetEmails = () => {
@@ -26,6 +28,16 @@ export const useGetEmails = () => {
   return query;
 };
 
+export const useGetEmailById = (id: string) => {
+  const query = useQuery({
+    queryKey: emailKeys.byId(id),
+    queryFn: () => getEmailById(id),
+    enabled: !!id,
+  });
+
+  return query;
+};
+
 type ResponseType = InferResponseType<
   (typeof client.api.emails.create)["$post"]
 >;
@@ -41,6 +53,7 @@ export const useCreateEmail = () => {
       if (!res.ok) {
         throw new Error("Failed to create email");
       }
+
       return await res.json();
     },
     onSuccess: () => {
