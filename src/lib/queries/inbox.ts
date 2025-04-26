@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/rpc";
+import { getInboxSelectOptions } from "../actions/inbox";
 
 export const inboxKeys = {
   all: ["inboxes"] as const,
@@ -42,17 +43,7 @@ export const useGetInboxes = () => {
 export const useGetInboxSelectOptions = () => {
   const query = useQuery({
     queryKey: inboxKeys.selectOptions,
-    queryFn: async () => {
-      const res = await client.api.inboxes["select-options"].$get();
-
-      if (!res.ok) {
-        throw new Error("Failed to get inbox select options");
-      }
-
-      const { data } = await res.json();
-
-      return data;
-    },
+    queryFn: getInboxSelectOptions,
   });
 
   return query;

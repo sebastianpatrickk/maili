@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/",
-        destination: "/email",
-        permanent: true,
+        destination: "/chat",
+        permanent: false,
       },
     ];
   },
