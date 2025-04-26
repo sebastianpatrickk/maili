@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import db from "@/server/db";
 import { desc } from "drizzle-orm";
-import { inboxes } from "../db/schema";
+import { inboxes } from "@/server/db/schema";
 
 const router = new Hono()
   .get("/", async (c) => {

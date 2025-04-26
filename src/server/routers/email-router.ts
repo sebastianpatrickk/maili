@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import db from "@/server/db";
+import { emails } from "@/server/db/schema";
 import { desc } from "drizzle-orm";
-import { emails } from "../db/schema";
 import { emailInsertFormSchema } from "@/lib/validations/email";
 
 const router = new Hono()
